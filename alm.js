@@ -136,7 +136,7 @@ function AlmViz(options) {
             .attr("class", "alm-category-row-info").append("span")
             .attr("class", "ui-icon ui-icon-info");
 
-        //$(tooltip).tooltip({title: category.tooltip_text, container: 'body'});
+        $(tooltip).tooltip({title: category.tooltip_text, container: 'body'});
 
         return categoryRow;
     };
@@ -593,15 +593,15 @@ function AlmViz(options) {
             .attr("y", function(d) { return viz.y(d[category.name]) - 1; })
             .attr("height", function(d) { return viz.height - viz.y(d[category.name]) + 1; });
 
-/*
+
 
         // add in some tool tips
         viz.barsForTooltips.selectAll("rect").each(
             function(d,i){
                 $(this).tooltip('destroy'); // need to destroy so all bars get updated
-                $(this).tooltip({title: formatNumber_(d[category.name]) + " in " + getFormattedDate_(level, d), container: "body"});
+                $(this).tooltip({title: formatNumber_(d[category.name]), container: "body"});
             }
         );
-*/
+
     }
 }
