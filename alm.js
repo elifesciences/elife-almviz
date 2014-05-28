@@ -233,7 +233,7 @@ function AlmViz(options) {
                     numMonths >= minItems_.minMonthsForMonthly) {
                     showMonthly = true;
                     level = 'month';
-                };
+                }
             }
 
             if (source.by_day){
@@ -462,10 +462,12 @@ function AlmViz(options) {
         // and the shadow bars on top for the tooltips
         viz.barsForTooltips = viz.svg.append("g");
 
+        // now the x and y axis bars.
         viz.svg.append("g")
             .attr("class", "x axis")
             .attr("transform", "translate(0," + (viz.height) + ")");
 
+        // now the x and y axis bars.
         viz.svg.append("g")
             .attr("class", "y axis");
 
@@ -496,10 +498,7 @@ function AlmViz(options) {
         // Domains for x and y
         //
         // a time x axis, between pub_date and end_date
-        //viz.x.domain([timeInterval.floor(pub_date), end_date]);
-        viz.x.domain(d3.extent(level_data, function(d) {
-            return getDate_(level, d);
-        }));
+        viz.x.domain([timeInterval.floor(pub_date), end_date]);
 
         // a linear axis from 0 to max value found
         viz.y.domain([0, d3.max(level_data, function(d) {
@@ -554,8 +553,8 @@ function AlmViz(options) {
 
         bars
             .attr("x", function(d) {
-                return viz.x(getDate_(level, d)) + 2;
-            }) // padding of 2, 1 each side
+                return viz.x(getDate_(level, d));
+            })
             .attr("width", barWidth);
 
         // TODO: these transitions could use a little work
