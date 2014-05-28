@@ -16,6 +16,8 @@ function AlmViz(options) {
     var hasIcon = options.hasIcon;
     var minItems_ = options.minItemsToShowGraph;
     var showTitle = options.showTitle;
+    var showSources = options.showSources;
+    var showSourceLinks = options.showSourceLinks;
     var chartheight = options.chartHeight;
     var chartwidth = options.chartWidth;
     var formatNumber_ = d3.format(",d");
@@ -187,11 +189,18 @@ function AlmViz(options) {
         if (source.name == 'pkpTimedViews') {
             $countLabel.append("span")
                 .text(source.display_name);
-        } else {
+        } else if (showSources) {
             // link the source name
-            $countLabel.append("a")
-                .attr("href", baseUrl_ + "/sources/" + source.name)
-                .text(source.display_name);
+            if (showSourceLinks) {
+                $countLabel.append("a")
+                    .text(source.display_name);
+                $countLabel.attr("href", baseUrl_ + "/sources/" + source.name)
+            }
+            else {
+                // show the source name
+                $countLabel.append("p")
+                    .text(source.display_name);
+            }
         }
 
         // Only add a chart if the browser supports SVG
