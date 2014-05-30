@@ -45,7 +45,7 @@ function AlmViz(options) {
             .text("Page view data not available : the server could not be contacted.")
         return this;
     }
-    var pub_date = d3.time.format.iso.parse(data[0]["publication_date"]);
+    var pubDate = d3.time.format.iso.parse(data[0]["publication_date"]);
 
     // ensure there's nothing here (such as a previous graph) before we start
     vizDiv.empty();
@@ -213,21 +213,21 @@ function AlmViz(options) {
             var showYearly = false;
 
             if (source.by_year) {
-                level_data = getData_('year', source);
-                var yearTotal = level_data.reduce(function(i, d) { return i + d[category.name]; }, 0);
-                var numYears = d3.time.year.utc.range(pub_date, new Date()).length;
+                levelData = getData_('year', source);
+                var yearTotal = levelData.reduce(function(i, d) { return i + d[category.name]; }, 0);
+                var numYears = d3.time.year.utc.range(pubDate, new Date()).length;
 
                 if (yearTotal >= minItems_.minEventsForYearly &&
                     numYears >= minItems_.minYearsForYearly) {
                     showYearly = true;
                     level = 'year';
-                };
+                }
             }
 
             if (source.by_month) {
-                level_data = getData_('month', source);
-                var monthTotal = level_data.reduce(function(i, d) { return i + d[category.name]; }, 0);
-                var numMonths = d3.time.month.utc.range(pub_date, new Date()).length;
+                levelData = getData_('month', source);
+                var monthTotal = levelData.reduce(function(i, d) { return i + d[category.name]; }, 0);
+                var numMonths = d3.time.month.utc.range(pubDate, new Date()).length;
 
                 if (monthTotal >= minItems_.minEventsForMonthly &&
                     numMonths >= minItems_.minMonthsForMonthly) {
@@ -237,23 +237,22 @@ function AlmViz(options) {
             }
 
             if (source.by_day){
-                level_data = getData_('day', source);
-                var dayTotal = level_data.reduce(function(i, d) { return i + d[category.name]; }, 0);
-                var numDays = d3.time.day.utc.range(pub_date, new Date()).length;
+                levelData = getData_('day', source);
+                var dayTotal = levelData.reduce(function(i, d) { return i + d[category.name]; }, 0);
+                var numDays = d3.time.day.utc.range(pubDate, new Date()).length;
 
                 if (dayTotal >= minItems_.minEventsForDaily && numDays >= minItems_.minDaysForDaily) {
                     showDaily = true;
                     level = 'day';
-                };
+                }
             }
 
-            // The level and level_data should be set to the finest level
+            // The level and levelData should be set to the finest level
             // of granularity that we can show
 
             // check there is data
             if (showDaily || showMonthly || showYearly) {
                 var $chartDiv = $row.append("div")
-//                    .attr("styles", "width: 70%; float:left;")
                     .attr("class", "alm-chart-area");
 
                 var viz = getViz_($chartDiv, source, category);
@@ -448,7 +447,7 @@ function AlmViz(options) {
         viz.z = d3.scale.ordinal();
         viz.z.range(['main', 'alt']);
 
-        // the chart
+        // The chart SVG element.
         viz.svg = viz.chartDiv.append("svg")
             .attr("width", viz.width + viz.margin.left + viz.margin.right)
             .attr("height", viz.height + viz.margin.top + viz.margin.bottom)
@@ -482,26 +481,23 @@ function AlmViz(options) {
      */
     var loadData_ = function(viz, level) {
         var category = viz.category;
-        var level_data = getData_(level, viz.source);
+        var levelData = getData_(level, viz.source);
         var timeInterval = getTimeInterval_(level);
 
-        var end_date = new Date();
+        var endDate = new Date();
         // use only first 29 days if using day view
-        // close out the year otherwise
         if (level == 'day') {
-            end_date = timeInterval.offset(pub_date, 29);
-        } else {
-            end_date = d3.time.year.utc.ceil(end_date);
+            endDate = timeInterval.offset(pubDate, 29);
         }
 
         //
         // Domains for x and y
         //
-        // a time x axis, between pub_date and end_date
-        viz.x.domain([timeInterval.floor(pub_date), end_date]);
+        // a time x axis, between pubDate and endDate
+        viz.x.domain([timeInterval.floor(pubDate), endDate]);
 
         // a linear axis from 0 to max value found
-        viz.y.domain([0, d3.max(level_data, function(d) {
+        viz.y.domain([0, d3.max(levelData, function(d) {
             return d[category.name];
         })]);
 
@@ -526,7 +522,7 @@ function AlmViz(options) {
         //
         // The chart itself
         //
-        var datasetLen = (timeInterval.range(pub_date, end_date).length);
+        var datasetLen = (timeInterval.range(pubDate, endDate).length);
 
         // the '2' allows for a gap between bars, and min of 1 ensures we get something...
         var barWidth = Math.max( ( viz.width / datasetLen ) - 2, 1);
