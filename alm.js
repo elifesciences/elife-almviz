@@ -20,6 +20,8 @@ function AlmViz(options) {
     var showSourceLinks = options.showSourceLinks;
     var chartheight = options.chartHeight;
     var chartwidth = options.chartWidth;
+    var gapWidth = 2;
+    var dailyNDays = 29;
     var formatNumber_ = d3.format(",d");
     var vizDiv;
 
@@ -485,9 +487,9 @@ function AlmViz(options) {
         var timeInterval = getTimeInterval_(level);
 
         var endDate = new Date();
-        // use only first 29 days if using day view
+        // use only first N days if using day view
         if (level == 'day') {
-            endDate = timeInterval.offset(pubDate, 29);
+            endDate = timeInterval.offset(pubDate, dailyNDays);
         }
 
         //
@@ -521,11 +523,10 @@ function AlmViz(options) {
 
         //
         // The chart itself
-        //
         var datasetLen = (timeInterval.range(pubDate, endDate).length);
 
-        // the '2' allows for a gap between bars, and min of 1 ensures we get something...
-        var barWidth = Math.max( ( viz.width / datasetLen ) - 2, 1);
+        // the min of 1 ensures we get something visible...ß
+        var barWidth = Math.max(( viz.width / datasetLen ) - gapWidth, 1);
 
         // Account for the 30-day view
         var filteredLevelData = levelData.filter(function (d) {
