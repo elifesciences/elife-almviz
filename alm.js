@@ -292,7 +292,7 @@ function AlmViz(options) {
                     $levelControlsDiv.append("a")
                         .attr("href", "javascript:void(0)")
                         .classed("alm-control", true)
-                        .classed("disabled", !showMonthly || !showYearly)
+                        .classed("disabled", !showMonthly)
                         .classed("active", (level == 'month'))
                         .text("monthly")
                         .on("click", function() {
@@ -314,7 +314,7 @@ function AlmViz(options) {
                     $levelControlsDiv.append("a")
                         .attr("href", "javascript:void(0)")
                         .classed("alm-control", true)
-                        .classed("disabled", !showYearly || !showMonthly)
+                        .classed("disabled", !showYearly)
                         .classed("active", (level == 'year'))
                         .text("yearly")
                         .on("click", function() {
