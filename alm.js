@@ -347,15 +347,18 @@ function AlmViz(options) {
      * @return {Date}
      */
     var getDate_ = function(level, d) {
+        console.log(d.year, d.month - 1, d.day);
         switch (level) {
             case 'year':
-                return new Date(d.year, 0, 1);
+                return new Date(d.year, 0, 1, 23, 59);
             case 'month':
                 // js Date indexes months at 0
-                return new Date(d.year, d.month - 1, 1);
+                return new Date(d.year, d.month - 1, 1, 23, 59);
             case 'day':
                 // js Date indexes months at 0
-                return new Date(d.year, d.month - 1, d.day);
+                return new Date(d.year, d.month - 1, d.day, 23, 59);
+            default:
+                return new Date(d.year, d.month - 1, d.day, 23, 59);
         }
     };
 
@@ -534,8 +537,10 @@ function AlmViz(options) {
 
         // Account for the 30-day view
         var filteredLevelData = levelData.filter(function (d) {
-            return (getDate_(level, d) < endDate);
-        });
+                var dt = getDate_(level, d);
+                return (dt >= pubDate) && (dt < endDate);
+            }
+        );
 
         // The bars to which tooltips are attached are separate from the visible ones.
         var barsForTooltips = viz.barsForTooltips.selectAll(".barsForTooltip")
