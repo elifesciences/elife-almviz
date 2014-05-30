@@ -554,6 +554,7 @@ function AlmViz(options) {
                 return "bar " + viz.z((level == 'day' ? d3.time.weekOfYear(getDate_(level, d)) : d.year));
             })
             .attr("y", viz.height)
+            // height starts off 0 but transitions to proper height.
             .attr("height", 0);
 
         bars
@@ -592,12 +593,12 @@ function AlmViz(options) {
             .attr("class", function(d) { return "barsForTooltip " + viz.z((level == 'day' ? d3.time.weekOfYear(getDate_(level, d)) : d.year)); });
 
         barsForTooltips
-            .attr("width", barWidth + 2)
-            .attr("x", function(d) { return viz.x(getDate_(level, d)) + 1; })
+            .attr("width", barWidth)
+            .attr("x", function(d) { return viz.x(getDate_(level, d)); })
+            // '- 1' here means there's a 1px gap between top of bar and arrow of tooltip, which
+            // looks better.
             .attr("y", function(d) { return viz.y(d[category.name]) - 1; })
             .attr("height", function(d) { return viz.height - viz.y(d[category.name]) + 1; });
-
-
 
         // add in some tool tips
         viz.barsForTooltips.selectAll("rect").each(
