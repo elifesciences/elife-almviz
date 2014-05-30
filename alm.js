@@ -375,6 +375,8 @@ function AlmViz(options) {
                 return d3.time.format("%b %y");
             case 'day':
                 return d3.time.format("%d %b %y");
+            default:
+                return d3.time.format("%d %b %y");
         }
     };
 
@@ -394,6 +396,8 @@ function AlmViz(options) {
                 return source.by_month;
             case 'day':
                 return source.by_day;
+            default:
+                return [];
         }
     };
 
@@ -548,21 +552,24 @@ function AlmViz(options) {
                 return getDate_(level, d);
             });
 
+        var barClasses = function (d) {
+            var tmClass = (level == 'day') ?
+                d3.time.weekOfYear(getDate_(level, d)) :
+                d.year;
+            // z(tmClass) is 'main' or 'alt' : see z.range
+            return "bar " + viz.z(tmClass);
+        };
+
         bars
             .enter()
             .append("rect")
-            .attr("class", function(d) {
-                return "bar " + viz.z((level == 'day' ? d3.time.weekOfYear(getDate_(level, d)) : d.year));
-            })
-            .attr("y", viz.height)
-            // height starts off 0 but transitions to proper height.
-            .attr("height", 0);
-
-        bars
+            .attr("width", barWidth)
+            .attr("height", 0)
             .attr("x", function(d) {
                 return viz.x(getDate_(level, d));
             })
-            .attr("width", barWidth);
+            .attr("y", viz.height)
+            .attr("class", barClasses);
 
         // TODO: these transitions could use a little work
         bars.transition()
