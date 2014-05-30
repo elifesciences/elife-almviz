@@ -527,8 +527,14 @@ function AlmViz(options) {
         // the '2' allows for a gap between bars, and min of 1 ensures we get something...
         var barWidth = Math.max( ( viz.width / datasetLen ) - 2, 1);
 
+        // Account for the 30-day view
+        var filteredLevelData = levelData.filter(function (d) {
+            return (getDate_(level, d) < endDate);
+        });
+
+        // The bars to which tooltips are attached are separate from the visible ones.
         var barsForTooltips = viz.barsForTooltips.selectAll(".barsForTooltip")
-            .data(level_data, function(d) {
+            .data(filteredLevelData, function (d) {
                 return getDate_(level, d);
             });
 
@@ -537,10 +543,13 @@ function AlmViz(options) {
             .remove();
 
         var bars = viz.bars.selectAll(".bar")
-            .data(level_data, function(d) { return getDate_(level, d); });
+            .data(filteredLevelData, function (d) {
+                return getDate_(level, d);
+            });
 
         bars
-            .enter().append("rect")
+            .enter()
+            .append("rect")
             .attr("class", function(d) {
                 return "bar " + viz.z((level == 'day' ? d3.time.weekOfYear(getDate_(level, d)) : d.year));
             })
