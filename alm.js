@@ -460,9 +460,9 @@ function AlmViz(options) {
         viz.svg = viz.chartDiv.append("svg")
             .attr("width", viz.width + viz.margin.left + viz.margin.right)
             .attr("height", viz.height + viz.margin.top + viz.margin.bottom)
+            // create a transformed group for the data area
             .append("g")
-            .attr("transform", "translate(" + viz.margin.left + "," + viz.margin.top + ")");
-
+            .attr("transform", "translate(" + (viz.margin.left) + "," + (viz.margin.top) + ")");
 
         // draw the bars g first so it ends up underneath the axes
         viz.bars = viz.svg.append("g");
@@ -546,7 +546,8 @@ function AlmViz(options) {
         var barsForTooltips = viz.barsForTooltips.selectAll(".barsForTooltip")
             .data(filteredLevelData, function (d) {
                 return getDate_(level, d);
-            });
+            }
+        );
 
         barsForTooltips
             .exit()
