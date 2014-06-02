@@ -349,15 +349,15 @@ function AlmViz(options) {
     var getDate_ = function(level, d) {
         switch (level) {
             case 'year':
-                return new Date(d.year, 0, 1, 12, 0);
+                return new Date(d.year, 0, 1, 1, 0);
             case 'month':
                 // js Date indexes months at 0
-                return new Date(d.year, d.month - 1, 1, 12, 0);
+                return new Date(d.year, d.month - 1, 1, 1, 0);
             case 'day':
                 // js Date indexes months at 0
-                return new Date(d.year, d.month - 1, d.day, 12, 0);
+                return new Date(d.year, d.month - 1, d.day, 1, 0);
             default:
-                return new Date(d.year, d.month - 1, d.day, 12, 0);
+                return new Date(d.year, d.month - 1, d.day, 1, 0);
         }
     };
 
@@ -565,9 +565,8 @@ function AlmViz(options) {
         var barXPos = function(d, i) {
             var dt = getDate_(level, d);
             var c = viz.x(dt);
-            var x = c - barWidth/2;
-            console.log("bar " + (i) + " @ " + dt + " X @ " + (c) + " => " + (x) + ".")
-            return x;
+            console.log("bar " + (i) + " @ " + dt + " X @ " + (c) + ".");
+            return c;
         };
 
         var barYPos = function (d) {
