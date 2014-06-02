@@ -497,22 +497,27 @@ function AlmViz(options) {
         if (level == 'day') {
             endDate = timeInterval.offset(pubDate, dailyNDays);
         }
+        var startDate = timeInterval.floor(pubDate);
 
         //
         // Domains for x and y
         //
-        // a time x axis, between pubDate and endDate
+        // a time x axis, between startDate and endDate
         // floor() here rounds down to the previous day, month or
         // year interval (see getTimeInterval_())
-        xdom = [timeInterval.floor(pubDate), endDate];
-        console.log("xdomain: [" + xdom[0] + ", " + xdom[1] + "]");
-        viz.x.domain(xdom);
+        console.log("xdomain: [" + startDate + ", " + endDate + "]");
+        viz.x.domain([startDate, endDate]);
 
         // a linear axis from 0 to max value found
         viz.y.domain([0, d3.max(levelData, function(d) {
             return d[category.name];
         })]);
 
+        // ask the scale component how wide a bar is
+        var barWidthInTime = timeInterval.offset(startDate, 1);
+        var barWidth = viz.x(barWidthInTime) - viz.x(startDate);
+
+        barWidth = Math.max(barWidth - gapWidth, 1);
         //
         // Axis
         //
@@ -531,17 +536,14 @@ function AlmViz(options) {
             .ticks(4)
             .tickFormat(d3.format(",d"));
 
-        //
-        // The chart itself
-        var datasetLen = (timeInterval.range(pubDate, endDate).length);
-
-        // the min of 1 ensures we get something visible...
-        var barWidth = Math.max(( viz.width / datasetLen ) - gapWidth, 1);
-
         // Account for the 30-day view
-        var filteredLevelData = levelData.filter(function (d) {
+        var filteredLevelData = levelData.filter(function (d, i) {
                 var dt = getDate_(level, d);
-                return (dt >= pubDate) && (dt < endDate);
+                var cond = (dt >= startDate) && (dt < endDate);
+                if (!cond) {
+                    console.log("excluded " + (i) + " @ " + dt + ".")
+                }
+                return cond;
             }
         );
 
@@ -553,10 +555,19 @@ function AlmViz(options) {
             return "bar " + viz.z(tmClass);
         };
 
-        var barXPos = function(d) {
+        var barToolClasses = function(d) {
+            var tmClass = (level == 'day') ?
+                d3.time.weekOfYear(getDate_(level, d)) :
+                d.year;
+            return "barsForTooltip " + viz.z(tmClass);
+        };
+
+        var barXPos = function(d, i) {
             var dt = getDate_(level, d);
             var c = viz.x(dt);
-            return c - barWidth/2;
+            var x = c - barWidth/2;
+            console.log("bar " + (i) + " @ " + dt + " X @ " + (c) + " => " + (x) + ".")
+            return x;
         };
 
         var barYPos = function (d) {
@@ -615,7 +626,7 @@ function AlmViz(options) {
 
         barsForTooltips
             .enter().append("rect")
-            .attr("class", function(d) { return "barsForTooltip " + viz.z((level == 'day' ? d3.time.weekOfYear(getDate_(level, d)) : d.year)); });
+            .attr("class", barToolClasses);
 
         barsForTooltips
             .attr("width", barWidth)
