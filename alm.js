@@ -347,18 +347,17 @@ function AlmViz(options) {
      * @return {Date}
      */
     var getDate_ = function(level, d) {
-        console.log(d.year, d.month - 1, d.day);
         switch (level) {
             case 'year':
-                return new Date(d.year, 0, 1, 23, 59);
+                return new Date(d.year, 0, 1, 12, 0);
             case 'month':
                 // js Date indexes months at 0
-                return new Date(d.year, d.month - 1, 1, 23, 59);
+                return new Date(d.year, d.month - 1, 1, 12, 0);
             case 'day':
                 // js Date indexes months at 0
-                return new Date(d.year, d.month - 1, d.day, 23, 59);
+                return new Date(d.year, d.month - 1, d.day, 12, 0);
             default:
-                return new Date(d.year, d.month - 1, d.day, 23, 59);
+                return new Date(d.year, d.month - 1, d.day, 12, 0);
         }
     };
 
@@ -503,7 +502,11 @@ function AlmViz(options) {
         // Domains for x and y
         //
         // a time x axis, between pubDate and endDate
-        viz.x.domain([timeInterval.floor(pubDate), endDate]);
+        // floor() here rounds down to the previous day, month or
+        // year interval (see getTimeInterval_())
+        xdom = [timeInterval.floor(pubDate), endDate];
+        console.log("xdomain: [" + xdom[0] + ", " + xdom[1] + "]");
+        viz.x.domain(xdom);
 
         // a linear axis from 0 to max value found
         viz.y.domain([0, d3.max(levelData, function(d) {
@@ -532,7 +535,7 @@ function AlmViz(options) {
         // The chart itself
         var datasetLen = (timeInterval.range(pubDate, endDate).length);
 
-        // the min of 1 ensures we get something visible...ß
+        // the min of 1 ensures we get something visible...
         var barWidth = Math.max(( viz.width / datasetLen ) - gapWidth, 1);
 
         // Account for the 30-day view
@@ -541,6 +544,24 @@ function AlmViz(options) {
                 return (dt >= pubDate) && (dt < endDate);
             }
         );
+
+        var barClasses = function (d) {
+            var tmClass = (level == 'day') ?
+                d3.time.weekOfYear(getDate_(level, d)) :
+                d.year;
+            // z(tmClass) is 'main' or 'alt' : see z.range
+            return "bar " + viz.z(tmClass);
+        };
+
+        var barXPos = function(d) {
+            var dt = getDate_(level, d);
+            var c = viz.x(dt);
+            return c - barWidth/2;
+        };
+
+        var barYPos = function (d) {
+            return viz.y(d[category.name]);
+        };
 
         // The bars to which tooltips are attached are separate from the visible ones.
         var barsForTooltips = viz.barsForTooltips.selectAll(".barsForTooltip")
@@ -558,22 +579,12 @@ function AlmViz(options) {
                 return getDate_(level, d);
             });
 
-        var barClasses = function (d) {
-            var tmClass = (level == 'day') ?
-                d3.time.weekOfYear(getDate_(level, d)) :
-                d.year;
-            // z(tmClass) is 'main' or 'alt' : see z.range
-            return "bar " + viz.z(tmClass);
-        };
-
         bars
             .enter()
             .append("rect")
             .attr("width", barWidth)
             .attr("height", 0)
-            .attr("x", function(d) {
-                return viz.x(getDate_(level, d));
-            })
+            .attr("x", barXPos)
             .attr("y", viz.height)
             .attr("class", barClasses);
 
@@ -581,7 +592,7 @@ function AlmViz(options) {
         bars.transition()
             .duration(1000)
             .attr("width", barWidth)
-            .attr("y", function(d) { return viz.y(d[category.name]); })
+            .attr("y", barYPos)
             .attr("height", function(d) { return viz.height - viz.y(d[category.name]); });
 
         bars
@@ -608,10 +619,10 @@ function AlmViz(options) {
 
         barsForTooltips
             .attr("width", barWidth)
-            .attr("x", function(d) { return viz.x(getDate_(level, d)); })
+            .attr("x", barXPos)
             // '- 1' here means there's a 1px gap between top of bar and arrow of tooltip, which
             // looks better.
-            .attr("y", function(d) { return viz.y(d[category.name]) - 1; })
+            .attr("y", barYPos)
             .attr("height", function(d) { return viz.height - viz.y(d[category.name]) + 1; });
 
         // add in some tool tips
@@ -621,6 +632,5 @@ function AlmViz(options) {
                 $(this).tooltip({title: formatNumber_(d[category.name]), container: "body"});
             }
         );
-
     }
 }
