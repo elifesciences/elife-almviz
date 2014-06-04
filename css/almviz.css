@@ -71,11 +71,11 @@
   padding: 0.5em;
   text-align: center;
   border: 1px solid #c5dbec;
-  background: #c8d7d7;
+  background: #273B81;
   -moz-border-radius: 6px;
   -webkit-border-radius: 6px;
   border-radius: 6px;
-  color: #304345;
+  color: white;
 }
 
 .alm-count-label a {
@@ -96,7 +96,7 @@
   font-size: 1.3em;
   padding-bottom: 0.4em;
   padding-top: 0.4em;
-  font-weight: bold;
+  font-family: 'Avenir LT W01 95 Black', 'Avenir LT 95 Black', Helvetica, Arial, Verdana, sans-serif;;
   vertical-align: middle;
 }
 
