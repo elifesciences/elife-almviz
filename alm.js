@@ -53,7 +53,7 @@ function AlmViz(options) {
    * NB: needs to be accessible from the outside for initialization
    */
   this.initViz = function () {
-    vizDiv.select("#loading").remove();
+    vizDiv.select(".loading").remove();
 
     if (showTitle) {
       vizDiv.append("a")
