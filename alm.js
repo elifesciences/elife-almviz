@@ -25,9 +25,9 @@ function AlmViz(options) {
   var showSourceLinks = options.showSourceLinks;
   var chartheight = options.chartHeight;
   var chartwidth = options.chartWidth;
+  var dailyNDays = options.dailyNDays;
 
   var gapWidth = 2;
-  var dailyNDays = 29;
   var formatNumber_ = d3.format(",d");
   var vizDiv;
 
@@ -43,7 +43,10 @@ function AlmViz(options) {
     makeGraph_,
     makeSourceCountTitle_;
 
+  // Oldest date represented on the graph.
   var pubDate,
+  // Publication date of article.
+    pubDateStore,
     hasSVG_,
   // to track if any metrics have been found
     metricsFound_;
@@ -241,7 +244,7 @@ function AlmViz(options) {
       monthTotal = levelData.reduce(function (i, d) {
         return i + d[category.name];
       }, 0);
-      numMonths = d3.time.month.utc.range(pubDate, new Date()).length;
+      numMonths = d3.time.month.utc.range(pubDateStore, new Date()).length;
 
       if (monthTotal >= minItems_.minEventsForMonthly &&
           numMonths >= minItems_.minMonthsForMonthly) {
@@ -298,7 +301,7 @@ function AlmViz(options) {
           .classed("alm-control", true)
           .classed("disabled", !showDaily)
           .classed("active", (level == 'day'))
-          .text("daily (first 30)")
+          .text("daily (last " + (dailyNDays + 1).toString() + ")")
           .on("click", function () {
             if (showDaily && !$(this).hasClass('active')) {
               loadData_(viz, 'day');
@@ -647,9 +650,13 @@ function AlmViz(options) {
 
     startDate = timeInterval.floor(pubDate);
     endDate = new Date();
-    // use only first N days if using day view
+    // use only last N days if using day view
     if (level == 'day') {
-      endDate = timeInterval.offset(pubDate, dailyNDays);
+      pubDate = timeInterval.offset(endDate, -dailyNDays);
+      startDate = timeInterval.floor(pubDate);
+    } else {
+      pubDate = pubDateStore;
+      startDate = timeInterval.floor(pubDate);
     }
 
     levelData = getData_(level, viz.source);
@@ -795,7 +802,7 @@ function AlmViz(options) {
       .text("Page view data not available : the server could not be contacted.")
     return this;
   }
-  pubDate = d3.time.format.iso.parse(data[0]["publication_date"]);
+  pubDateStore = pubDate = d3.time.format.iso.parse(data[0]["publication_date"]);
 
   // look to make sure browser support SVG
   hasSVG_ = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
