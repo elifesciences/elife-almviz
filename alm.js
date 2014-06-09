@@ -9,7 +9,7 @@ function AlmViz(options) {
 
   // allow jQuery object to be passed in
   // in case a different version of jQuery is needed from the one globally defined
-  $ = options.jQuery || jQuery;
+  var $ = options.jQuery || jQuery;
 
   // Init data
   var categories_ = options.categories;
@@ -142,7 +142,6 @@ function AlmViz(options) {
    * @param {Object} canvas d3 element
    * @param {Array} category Information about the category.
    * @param {Object} data Statistics.
-   * @return {JQueryObject|boolean}
    */
   addCategory_ = function (canvas, category, data) {
     var $categoryRow = false;
@@ -169,7 +168,7 @@ function AlmViz(options) {
    *
    * @param {Object} canvas d3 element
    * @param {Array} category Information about the category.
-   * @return {JQueryObject|boolean} the new chart container.
+   * @return {Object} jQuery object representing the new chart container
    */
   getCategoryRow_ = function (canvas, category) {
     var categoryRow,
@@ -198,14 +197,15 @@ function AlmViz(options) {
 
   /**
    * Add the graph to the element.
+   *
    * @param {Object} source The data source, containing summary and detailed
-   * data, possibly at several levels of detail.
+   *          data, possibly at several levels of detail.
    * @param {Array} category Information about the category.
+   * @param {Object} $row jQuery element which contains the graph.
    */
   makeGraph_ = function (source, category, $row) {
     var level;
     var levelData;
-
     // check what levels we can show
     var showDaily = false,
       showMonthly = false,
@@ -296,7 +296,7 @@ function AlmViz(options) {
         $levelControlsDiv.append("a")
           .attr("href", "javascript:void(0)")
           .classed("alm-control", true)
-          .classed("disabled", !showMonthly)
+          .classed("disabled", !showDaily)
           .classed("active", (level == 'day'))
           .text("daily (first 30)")
           .on("click", function () {
@@ -359,6 +359,13 @@ function AlmViz(options) {
    * the total article count, and the name of the data source. The name
    * can also be linked to another page that 'elaborates' the data source
    * in some way.
+   *
+   * @param {Object} source The data source, containing summary and detailed
+   *          data, possibly at several levels of detail.
+   * @param {int} sourceTotalValue Total of number of events for this graph,
+   *          eg total page views.
+   * @param {Array} category Information about the category.
+   * @param {Object} $row jQuery element which contains the graph.
    */
   makeSourceCountTitle_ = function (source, sourceTotalValue, category, $row) {
     var $countLabel, $count;
@@ -376,7 +383,7 @@ function AlmViz(options) {
     if (source.events_url) {
       // if there is an events_url, we can link to it from the count
       $count = $countLabel.append("a")
-        .attr("href", function (d) {
+        .attr("href", function () {
           return source.events_url;
         });
     }
@@ -401,7 +408,7 @@ function AlmViz(options) {
       if (showSourceLinks) {
         $countLabel.append("a")
           .text(source.display_name);
-        $countLabel.attr("href", baseUrl_ + "/sources/" + source.name)
+        $countLabel.attr("href", baseUrl_ + "/sources/" + source.name);
       }
       else {
         // show the source name
@@ -413,11 +420,15 @@ function AlmViz(options) {
 
   /**
    * Add source information to the passed category row element.
-   * @param {Object} source
-   * @param {integer} sourceTotalValue
-   * @param {Object} category
-   * @param {JQueryObject} $categoryRow
-   * @return {JQueryObject}
+   *
+   * @param {Object} source The data source, containing summary and detailed
+   *          data, possibly at several levels of detail.
+   * @param {int} sourceTotalValue Total of number of events for this graph,
+   *          eg total page views.
+   * @param {Array} category Information about the category.
+   * @param {Object} $categoryRow jQuery element to which the new graph will
+   *         be added.
+   * @return {Object}
    */
   addSource_ = function (source, sourceTotalValue, category, $categoryRow) {
     var $row;
@@ -439,10 +450,12 @@ function AlmViz(options) {
   };
 
   /**
-   * Extract the date from the source
-   * @param level (day|month|year)
-   * @param d the datum
-   * @return {Date}
+   * Read the date for a given datum from the source. The value of
+   * level changes the granularity of the returned date object.
+   *
+   * @param {string} level (day|month|year)
+   * @param {Object} d the datum
+   * @return {Date} A php Date object.
    */
   getDate_ = function (level, d) {
     switch (level) {
@@ -460,10 +473,11 @@ function AlmViz(options) {
   };
 
   /**
-   * Returns a d3 date format for date operations.
+   * Returns a d3 date format for date operations. The level parameter
+   * affects the granularity of the returned format.
    *
-   * @param level (day|month|year)
-   * @param d the datum
+   * @param {string} level (day|month|year)
+   * @param {Object} d the datum
    * @return {String}
    */
   getDateFormat_ = function (level) {
@@ -484,7 +498,8 @@ function AlmViz(options) {
    * Extract the data from the source.
    *
    * @param {string} level (day|month|year)
-   * @param {Object} source
+   * @param {Object} source The data source, containing summary and detailed
+   *          data, possibly at several levels of detail.
    * @return {Array} Metrics
    */
   getData_ = function (level, source) {
@@ -520,7 +535,8 @@ function AlmViz(options) {
   };
 
   /**
-   * Takes in the basic set up of a graph and loads the data itself
+   * Takes in the basic set up of a graph and loads the data itself.
+   *
    * @param {Object} viz AlmViz object
    * @param {string} level (day|month|year)
    */
@@ -550,9 +566,9 @@ function AlmViz(options) {
 
     /**
      * Account for the 30-day view: produce a version of the level data which
-     * has only the data we
+     * has only the data we intend to use for this graph.
      */
-    filterData = function (d, i) {
+    filterData = function (d) {
       var dt;
       dt = getDate_(level, d);
       return (dt >= startDate) && (dt < endDate);
@@ -562,7 +578,7 @@ function AlmViz(options) {
      * Return a data key value which also specifies the x-value of the bar
      * on the graph.
      */
-    dataKeyFunc = function (d, i) {
+    dataKeyFunc = function (d) {
       return getDate_(level, d);
     };
 
@@ -598,7 +614,7 @@ function AlmViz(options) {
      * Return the position on the X axis for the bar. This is the left-hand edge
      * of the bar, corresponding to the earliest date.
      */
-    barXPos = function (d, i) {
+    barXPos = function (d) {
       var dt = getDate_(level, d);
       return viz.x(dt);
     };
@@ -751,7 +767,7 @@ function AlmViz(options) {
 
     // add in some tool tips on data values.
     viz.barsForTooltips.selectAll("rect").each(
-      function (d, i) {
+      function (d) {
         $(this).tooltip('destroy'); // need to destroy so all bars get updated
         $(this).tooltip({title: formatNumber_(d[category.name]), container: "body"});
       }
